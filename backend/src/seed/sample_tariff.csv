@@ -1,0 +1,11 @@
+code,description_ro,description_ru,unit,duty_rate,vat_rate,excise_rate,excise_amount_per_kg,chapter,notes
+84713000,"Mașini de prelucrare automată a datelor, portabile, <=10 kg (laptopuri)","Портативные вычислительные машины <=10 кг",buc,0,20,,,84,"Acord ITA: taxă 0 pentru echipamente IT"
+84717000,"Unități de memorie / stocare pentru mașini de calcul","Запоминающие устройства",buc,0,20,,,84,
+85285200,"Monitoare capabile de conectare directă la o mașină de calcul","Мониторы для вычислительных машин",buc,10,20,,,85,
+85176200,"Aparate pentru recepția/conversia/transmisia vocii sau datelor (routere, switch-uri)","Аппаратура для приёма и передачи данных",buc,0,20,,,85,
+85183000,"Căști și seturi cască-microfon","Наушники и гарнитуры",buc,5,20,,,85,
+85044055,"Încărcătoare de acumulatoare","Зарядные устройства",buc,8,20,,,85,
+84439990,"Părți și accesorii pentru imprimante","Части печатающих устройств",kg,4,20,,,84,
+09011100,"Cafea neprăjită, necofeinizată","Кофе нежареный с кофеином",kg,0,20,,,09,
+22042110,"Vinuri în recipiente <=2 l (exemplu didactic)","Вина в сосудах <=2 л (пример)",l,20,20,10,,22,"Rând EXEMPLU: rate ilustrative, nu oficiale"
+24022090,"Țigarete conținând tutun (exemplu didactic)","Сигареты с табаком (пример)",kg,15,20,,120,24,"Rând EXEMPLU: acciz per kg ilustrativ"

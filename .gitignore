@@ -1,0 +1,27 @@
+# Python
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.venv/
+venv/
+
+# AWS SAM
+.aws-sam/
+samconfig.local.toml
+
+# Node / Next
+node_modules/
+.next/
+out/
+next-env.d.ts
+
+# Env & secrets
+.env
+.env.local
+.env*.local
+
+# Seed data (load the official tariff yourself)
+backend/src/seed/data/
+
+# OS
+.DS_Store

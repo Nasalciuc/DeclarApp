@@ -1,0 +1,26 @@
+{
+  "declaratie": {"tip": "IM", "numar_referinta": "MD-2026-08412", "data": "2026-06-30"},
+  "parti": {
+    "exportator": {"nume": "Shenzhen Tech Ltd", "adresa": "Shenzhen, CN", "cod_fiscal": null},
+    "importator": {"nume": "SRL Import Tech", "adresa": "Chisinau, MD", "cod_fiscal": "1012600012345"}
+  },
+  "transport": {"tara_expediere": "CN", "tara_destinatie": "MD", "mod_transport": "40"},
+  "financiar": {"valuta": "MDL", "suma_totala_facturata": 24300, "curs_valutar": null},
+  "marfuri": [
+    {
+      "numar_articol": 1,
+      "descriere": "Laptop 15.6, 16 GB RAM",
+      "cod_marfa": "85285200",
+      "tara_origine": "CN",
+      "masa_bruta_kg": 45.0,
+      "masa_neta_kg": 42.0,
+      "cod_procedura": "4000",
+      "valoare_statistica": 24300,
+      "pret_articol": 24300,
+      "taxe": [
+        {"tip": "Taxa vamală", "baza": 24300, "cota": "10%", "suma": 2430.0},
+        {"tip": "TVA", "baza": 26730, "cota": "20%", "suma": 5346.0}
+      ]
+    }
+  ]
+}

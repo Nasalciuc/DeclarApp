@@ -1,0 +1,232 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: >
+  Customs Declaration Analyzer - serverless pipeline (Phase 1).
+  Idle cost: $0/month. Everything is pay-per-use.
+
+Parameters:
+  BedrockModelId:
+    Type: String
+    Default: eu.anthropic.claude-sonnet-4-6
+    Description: >
+      Bedrock model ID with inference-profile prefix (eu./us.). Check
+      Bedrock console > Model access in your region and adjust.
+  EnableSemantic:
+    Type: String
+    Default: '0'
+    AllowedValues: ['0', '1']
+    Description: Phase 2 flag - '1' turns on the LLM semantic check.
+  WebOrigin:
+    Type: String
+    Default: '*'
+    Description: >
+      CORS origin allowed to upload from the browser. Set to your web app
+      URL (e.g. https://app.example.md) in production.
+
+Globals:
+  Function:
+    Runtime: python3.12
+    MemorySize: 512
+    Timeout: 180
+    CodeUri: ../backend/src
+    Environment:
+      Variables:
+        BUCKET: !Sub '${AWS::StackName}-documents-${AWS::AccountId}'
+        REPORTS_BUCKET: !Sub '${AWS::StackName}-documents-${AWS::AccountId}'
+        DECLARATIONS_TABLE: !Ref DeclarationsTable
+        TARIFF_TABLE: !Ref TariffTable
+        BEDROCK_MODEL_ID: !Ref BedrockModelId
+        ENABLE_SEMANTIC: !Ref EnableSemantic
+
+Resources:
+  # Fixed bucket name (string, not !Ref) breaks the bucket<->lambda
+  # circular dependency that S3 event notifications otherwise create.
+  DocumentsBucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName: !Sub '${AWS::StackName}-documents-${AWS::AccountId}'
+      PublicAccessBlockConfiguration:
+        BlockPublicAcls: true
+        BlockPublicPolicy: true
+        IgnorePublicAcls: true
+        RestrictPublicBuckets: true
+      BucketEncryption:
+        ServerSideEncryptionConfiguration:
+          - ServerSideEncryptionByDefault:
+              SSEAlgorithm: AES256
+      CorsConfiguration:
+        CorsRules:
+          - AllowedMethods: [PUT, GET]
+            AllowedOrigins: [!Ref WebOrigin]
+            AllowedHeaders: ['*']
+            MaxAge: 3600
+
+  # Events that still fail after retries land here instead of vanishing.
+  FailedEventsQueue:
+    Type: AWS::SQS::Queue
+    Properties:
+      MessageRetentionPeriod: 1209600   # 14 days
+
+  DeclarationsTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      BillingMode: PAY_PER_REQUEST
+      AttributeDefinitions:
+        - AttributeName: declaration_id
+          AttributeType: S
+        - AttributeName: status
+          AttributeType: S
+        - AttributeName: created_at
+          AttributeType: S
+      KeySchema:
+        - AttributeName: declaration_id
+          KeyType: HASH
+      GlobalSecondaryIndexes:
+        - IndexName: status-created_at
+          KeySchema:
+            - AttributeName: status
+              KeyType: HASH
+            - AttributeName: created_at
+              KeyType: RANGE
+          Projection:
+            ProjectionType: ALL
+
+  TariffTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      BillingMode: PAY_PER_REQUEST
+      AttributeDefinitions:
+        - AttributeName: code
+          AttributeType: S
+      KeySchema:
+        - AttributeName: code
+          KeyType: HASH
+
+  # Static log-group names + LoggingConfig: the group is created by the
+  # stack BEFORE the function can log (no "already exists" race), and
+  # 7-day retention applies from the first invocation.
+  ExtractLogGroup:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: !Sub '/aws/lambda/${AWS::StackName}-extract'
+      RetentionInDays: 7
+
+  ValidateLogGroup:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: !Sub '/aws/lambda/${AWS::StackName}-validate'
+      RetentionInDays: 7
+
+  HitlLogGroup:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: !Sub '/aws/lambda/${AWS::StackName}-hitl'
+      RetentionInDays: 7
+
+  ExtractFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: handlers.extract_handler.lambda_handler
+      LoggingConfig:
+        LogGroup: !Ref ExtractLogGroup
+      EventInvokeConfig:
+        MaximumEventAgeInSeconds: 3600
+        MaximumRetryAttempts: 2
+        DestinationConfig:
+          OnFailure:
+            Type: SQS
+            Destination: !GetAtt FailedEventsQueue.Arn
+      Events:
+        NewUpload:
+          Type: S3
+          Properties:
+            Bucket: !Ref DocumentsBucket
+            Events: s3:ObjectCreated:*
+            Filter:
+              S3Key:
+                Rules:
+                  - Name: prefix
+                    Value: input/
+      Policies:
+        - S3CrudPolicy:
+            BucketName: !Sub '${AWS::StackName}-documents-${AWS::AccountId}'
+        - DynamoDBCrudPolicy:
+            TableName: !Ref DeclarationsTable
+        - Statement:
+            - Effect: Allow
+              Action:
+                - bedrock:InvokeModel
+                - bedrock:InvokeModelWithResponseStream
+              Resource: '*'
+
+  ValidateFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: handlers.validate_handler.lambda_handler
+      LoggingConfig:
+        LogGroup: !Ref ValidateLogGroup
+      EventInvokeConfig:
+        MaximumEventAgeInSeconds: 3600
+        MaximumRetryAttempts: 2
+        DestinationConfig:
+          OnFailure:
+            Type: SQS
+            Destination: !GetAtt FailedEventsQueue.Arn
+      Events:
+        NewExtraction:
+          Type: S3
+          Properties:
+            Bucket: !Ref DocumentsBucket
+            Events: s3:ObjectCreated:*
+            Filter:
+              S3Key:
+                Rules:
+                  - Name: prefix
+                    Value: extracted/
+                  - Name: suffix
+                    Value: .json
+      Policies:
+        - S3CrudPolicy:
+            BucketName: !Sub '${AWS::StackName}-documents-${AWS::AccountId}'
+        - DynamoDBCrudPolicy:
+            TableName: !Ref DeclarationsTable
+        - DynamoDBReadPolicy:
+            TableName: !Ref TariffTable
+        - Statement:
+            - Effect: Allow
+              Action:
+                - bedrock:InvokeModel
+                - bedrock:InvokeModelWithResponseStream
+              Resource: '*'
+
+  HitlFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: handlers.hitl_correction.lambda_handler
+      Timeout: 30
+      LoggingConfig:
+        LogGroup: !Ref HitlLogGroup
+      FunctionUrlConfig:
+        AuthType: AWS_IAM
+      Policies:
+        - S3CrudPolicy:
+            BucketName: !Sub '${AWS::StackName}-documents-${AWS::AccountId}'
+        - DynamoDBCrudPolicy:
+            TableName: !Ref DeclarationsTable
+        - DynamoDBReadPolicy:
+            TableName: !Ref TariffTable
+
+Outputs:
+  BucketName:
+    Value: !Ref DocumentsBucket
+  DeclarationsTableName:
+    Value: !Ref DeclarationsTable
+  TariffTableName:
+    Value: !Ref TariffTable
+  HitlFunctionName:
+    Value: !Ref HitlFunction
+  HitlFunctionUrl:
+    Value: !GetAtt HitlFunctionUrl.FunctionUrl
+  FailedEventsQueueUrl:
+    Description: Events that failed all retries land here - check if a declaration vanishes.
+    Value: !Ref FailedEventsQueue

@@ -1,0 +1,27 @@
+{
+  "_comment": "Least-privilege policy for the web app's IAM user. Replace <ACCOUNT_ID> and, if you changed the stack name, 'customs-analyzer'. Attach to a dedicated IAM user; put its keys in Vercel as APP_AWS_ACCESS_KEY_ID / APP_AWS_SECRET_ACCESS_KEY.",
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Sid": "ReadDeclarations",
+      "Effect": "Allow",
+      "Action": ["dynamodb:GetItem", "dynamodb:Query"],
+      "Resource": [
+        "arn:aws:dynamodb:eu-central-1:<ACCOUNT_ID>:table/customs-analyzer-DeclarationsTable-*",
+        "arn:aws:dynamodb:eu-central-1:<ACCOUNT_ID>:table/customs-analyzer-DeclarationsTable-*/index/status-created_at"
+      ]
+    },
+    {
+      "Sid": "PresignUploadsAndPreviews",
+      "Effect": "Allow",
+      "Action": ["s3:PutObject", "s3:GetObject"],
+      "Resource": "arn:aws:s3:::customs-analyzer-documents-<ACCOUNT_ID>/input/*"
+    },
+    {
+      "Sid": "InvokeHitlCorrection",
+      "Effect": "Allow",
+      "Action": "lambda:InvokeFunction",
+      "Resource": "arn:aws:lambda:eu-central-1:<ACCOUNT_ID>:function:customs-analyzer-HitlFunction-*"
+    }
+  ]
+}

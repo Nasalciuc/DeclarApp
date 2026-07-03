@@ -1,0 +1,249 @@
+/* Design: registru vamal modern.
+   Palette: cerneală #16222E pe hârtie de registru #F5F6F2; accent =
+   albastru de ștampilă #24519B; verdicte = sigiliu verde / roșu / ocru.
+   Type: IBM Plex Sans (UI) + IBM Plex Mono (coduri, sume).
+   Signature: verdictul ca ștampilă rotită; eyebrows = casetele SAD. */
+
+:root {
+  --ink: #16222e;
+  --ink-2: #47535e;
+  --muted-ink: #6b7681;
+  --paper: #f5f6f2;
+  --surface: #ffffff;
+  --line: #d9dcd4;
+  --line-strong: #b9beb2;
+  --stamp: #24519b;
+  --stamp-soft: #e8edf7;
+  --pass: #1d7a55;
+  --pass-soft: #e5f2ec;
+  --fail: #b3362c;
+  --fail-soft: #f8e9e7;
+  --warn: #96690f;
+  --warn-soft: #f7efdd;
+  --skip: #6b7681;
+  --skip-soft: #eef0ec;
+  --radius: 6px;
+}
+
+* { box-sizing: border-box; }
+
+html, body { margin: 0; padding: 0; }
+
+body {
+  font-family: var(--font-sans), system-ui, sans-serif;
+  background:
+    linear-gradient(to bottom, #eef0ea 0, var(--paper) 220px);
+  color: var(--ink);
+  font-size: 15px;
+  line-height: 1.55;
+}
+
+.mono { font-family: var(--font-mono), monospace; }
+
+a { color: var(--stamp); text-decoration: none; }
+a:hover { text-decoration: underline; }
+
+:focus-visible {
+  outline: 2px solid var(--stamp);
+  outline-offset: 2px;
+  border-radius: 2px;
+}
+
+.shell { max-width: 1060px; margin: 0 auto; padding: 0 1.25rem; }
+
+/* Header */
+.site-header {
+  border-bottom: 1px solid var(--line);
+  background: var(--surface);
+}
+.header-row {
+  display: flex; align-items: center; justify-content: space-between;
+  padding-top: .85rem; padding-bottom: .85rem; gap: 1rem;
+}
+.brand {
+  font-weight: 700; letter-spacing: .02em; color: var(--ink);
+  font-size: 1.05rem;
+}
+.brand span { color: var(--stamp); }
+.nav { display: flex; align-items: center; gap: 1.1rem; }
+.nav a { color: var(--ink-2); font-weight: 500; }
+
+.main { padding: 2rem 1.25rem 3rem; }
+.foot {
+  padding: 1.25rem; color: var(--muted-ink); font-size: .8rem;
+  border-top: 1px solid var(--line); text-align: center;
+}
+
+/* Type scale */
+h1 { font-size: 1.7rem; font-weight: 600; margin: .1rem 0 .3rem; }
+.lede { color: var(--ink-2); max-width: 56ch; }
+.muted { color: var(--muted-ink); font-size: .86rem; }
+
+/* Eyebrow = eticheta de casetă SAD */
+.eyebrow {
+  font-family: var(--font-mono), monospace;
+  font-size: .7rem; letter-spacing: .18em; text-transform: uppercase;
+  color: var(--stamp); margin: 0;
+}
+
+.page-head {
+  display: flex; align-items: flex-start; justify-content: space-between;
+  gap: 1rem; margin-bottom: 1.4rem; flex-wrap: wrap;
+}
+
+/* Signature: verdictul ca ștampilă */
+.stamp {
+  --c: var(--stamp);
+  display: inline-block; align-self: center;
+  padding: .5rem 1.05rem;
+  border: 2px solid var(--c);
+  box-shadow: inset 0 0 0 2px color-mix(in srgb, var(--c) 45%, transparent);
+  color: var(--c);
+  font-weight: 700; font-size: .78rem;
+  letter-spacing: .16em; text-transform: uppercase;
+  transform: rotate(-3deg);
+  border-radius: 4px;
+  background: color-mix(in srgb, var(--c) 6%, transparent);
+}
+.stamp-pass { --c: var(--pass); }
+.stamp-warn { --c: var(--warn); }
+.stamp-fail { --c: var(--fail); }
+.stamp-wait { --c: var(--muted-ink); }
+
+/* Cards & table */
+.card {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  padding: 1rem 1.1rem;
+}
+.card + .card { margin-top: 1rem; }
+
+.empty { text-align: center; padding: 3rem 1rem; }
+.empty .btn { margin-top: .8rem; }
+
+.table-wrap { padding: 0; overflow-x: auto; }
+.table { width: 100%; border-collapse: collapse; font-size: .92rem; }
+.table th {
+  text-align: left; font-size: .72rem; letter-spacing: .12em;
+  text-transform: uppercase; color: var(--muted-ink);
+  padding: .7rem .9rem; border-bottom: 1px solid var(--line-strong);
+}
+.table td { padding: .7rem .9rem; border-bottom: 1px solid var(--line); }
+.table tr:last-child td { border-bottom: 0; }
+.table tbody tr:hover { background: #fafbf8; }
+.row-link { font-weight: 500; }
+
+/* Chips */
+.chip {
+  display: inline-block; padding: .13rem .55rem; border-radius: 999px;
+  font-size: .74rem; font-weight: 600; letter-spacing: .02em;
+  border: 1px solid transparent;
+}
+.chip-pass, .chip-validated { background: var(--pass-soft); color: var(--pass); }
+.chip-fail, .chip-error     { background: var(--fail-soft); color: var(--fail); }
+.chip-warn, .chip-flagged   { background: var(--warn-soft); color: var(--warn); }
+.chip-skip, .chip-extracted { background: var(--skip-soft); color: var(--skip); }
+.pulse { animation: pulse 1.6s ease-in-out infinite; }
+@keyframes pulse { 50% { opacity: .45; } }
+
+/* Buttons */
+.btn {
+  display: inline-block; border: 1px solid var(--line-strong);
+  background: var(--surface); color: var(--ink);
+  padding: .5rem .95rem; border-radius: var(--radius);
+  font-size: .9rem; font-weight: 600; cursor: pointer;
+}
+.btn:hover { border-color: var(--ink-2); text-decoration: none; }
+.btn-primary {
+  background: var(--stamp); border-color: var(--stamp); color: #fff;
+}
+.btn-primary:hover { background: #1d4283; border-color: #1d4283; }
+.btn[disabled] { opacity: .55; cursor: default; }
+
+/* Upload dropzone */
+.dropzone {
+  margin-top: 1.2rem; padding: 2.6rem 1.5rem; text-align: center;
+  border: 2px dashed var(--line-strong); border-radius: var(--radius);
+  background: var(--surface); cursor: pointer;
+}
+.dropzone.dragging { border-color: var(--stamp); background: var(--stamp-soft); }
+.dropzone p { margin: .25rem 0; }
+.error-text { color: var(--fail); font-size: .88rem; margin-top: .7rem; }
+
+/* Detail layout */
+.split {
+  display: grid; grid-template-columns: 300px minmax(0, 1fr);
+  gap: 1.1rem; align-items: start;
+}
+.doc-card { padding: .7rem; }
+.doc-head {
+  display: flex; justify-content: space-between; align-items: center;
+  font-size: .82rem; color: var(--ink-2); padding: .15rem .3rem .55rem;
+}
+.doc-frame {
+  width: 100%; height: 460px; border: 1px solid var(--line);
+  border-radius: 4px; background: var(--skip-soft);
+}
+
+.processing { display: flex; gap: .9rem; align-items: center; }
+.spinner {
+  width: 18px; height: 18px; flex: none; border-radius: 50%;
+  border: 2px solid var(--line-strong); border-top-color: var(--stamp);
+  animation: spin .9s linear infinite;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* Checks */
+.item-head { display: flex; flex-wrap: wrap; gap: .5rem .8rem; align-items: baseline; }
+.item-desc { color: var(--ink-2); font-size: .92rem; margin: .15rem 0 .6rem; }
+
+.check-row {
+  display: flex; gap: .8rem; align-items: flex-start;
+  padding: .65rem 0; border-top: 1px solid var(--line);
+}
+.check-row:first-of-type { border-top: 0; }
+.check-name { font-weight: 600; margin: 0; }
+.check-head { display: flex; align-items: center; gap: .55rem; }
+.check-body { flex: 1; min-width: 0; }
+.issues { margin: .3rem 0 0; padding-left: 1.1rem; color: var(--ink-2); font-size: .87rem; }
+
+.fisc-table { width: 100%; border-collapse: collapse; margin-top: .45rem; font-size: .88rem; }
+.fisc-table th {
+  text-align: left; font-weight: 500; color: var(--muted-ink);
+  font-size: .72rem; letter-spacing: .1em; text-transform: uppercase;
+  padding: .25rem .5rem .25rem 0;
+}
+.fisc-table td { padding: .28rem .5rem .28rem 0; }
+.delta-bad td { color: var(--fail); font-weight: 600; }
+
+.decl-checks { display: flex; flex-wrap: wrap; gap: .5rem .9rem; margin-bottom: 1rem; }
+.decl-checks .pair { display: flex; align-items: center; gap: .45rem; font-size: .88rem; }
+
+/* Correction form */
+.correct-box {
+  margin-top: .8rem; padding: .85rem; border: 1px solid var(--line);
+  border-radius: var(--radius); background: #fbfcf9;
+}
+.form-row { display: flex; gap: .6rem; flex-wrap: wrap; align-items: center; }
+.input {
+  border: 1px solid var(--line-strong); border-radius: var(--radius);
+  padding: .48rem .6rem; font-size: .92rem; background: var(--surface);
+  color: var(--ink); min-width: 0;
+}
+.input.code { font-family: var(--font-mono), monospace; width: 9.5rem; letter-spacing: .05em; }
+.input.note { flex: 1; min-width: 12rem; }
+.result-ok { color: var(--pass); font-size: .88rem; margin: .5rem 0 0; }
+.result-err { color: var(--fail); font-size: .88rem; margin: .5rem 0 0; }
+
+.history { margin-top: 1rem; }
+.history li { font-size: .87rem; color: var(--ink-2); margin: .25rem 0; }
+
+@media (max-width: 760px) {
+  .split { grid-template-columns: 1fr; }
+  .doc-frame { height: 320px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .pulse, .spinner { animation: none; }
+}
